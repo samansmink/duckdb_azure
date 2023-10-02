@@ -18,7 +18,6 @@ namespace duckdb {
 
 BlobClientWrapper::BlobClientWrapper(AzureAuthentication auth, const string& path) {
 	auto container_client = Azure::Storage::Blobs::BlobContainerClient::CreateFromConnectionString(auth.connection_string, auth.container);
-	container_client.CreateIfNotExists();
 	blob_client = make_uniq<Azure::Storage::Blobs::BlockBlobClient>(container_client.GetBlockBlobClient(path));
 }
 BlobClientWrapper::~BlobClientWrapper() = default;
@@ -52,6 +51,11 @@ unique_ptr<AzureStorageFileHandle> AzureStorageFileSystem::CreateHandle(const st
 unique_ptr<FileHandle> AzureStorageFileSystem::OpenFile(const string &path, uint8_t flags, FileLockType lock,
                                                 FileCompressionType compression, FileOpener *opener) {
     D_ASSERT(compression == FileCompressionType::UNCOMPRESSED);
+
+	if (flags & FileFlags::FILE_FLAGS_WRITE) {
+		throw NotImplementedException("Writing to Azure containers is currently not supported");
+	}
+
     auto handle = CreateHandle(path, flags, lock, compression, opener);
     return std::move(handle);
 }
@@ -157,7 +161,6 @@ vector<string> AzureStorageFileSystem::Glob(const string &path, FileOpener *open
 		connection_string = value.ToString();
 	}
 	auto container_client = Azure::Storage::Blobs::BlobContainerClient::CreateFromConnectionString(connection_string, parsed_azure_url.container);
-	container_client.CreateIfNotExists();
 
 	vector<Azure::Storage::Blobs::Models::BlobItem> found_keys;
 	Azure::Storage::Blobs::ListBlobsOptions options;
