@@ -23,7 +23,6 @@ jobs:
       duckdb_version: v0.9.0
       extension_name: azure
       extension_ref: ${{ github.ref }}
-      exclude_archs: "[ 'linux_amd64' ]"
       artifact_postfix: "-stable"
 
   duckdb-stable-deploy:
@@ -35,6 +34,5 @@ jobs:
       extension_name: azure
       extension_ref: ${{ github.ref }}
       set_latest: true
-      exclude_archs: "[ 'linux_amd64' ]"
       artifact_postfix: "-stable"
     secrets: inherit
