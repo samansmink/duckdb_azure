@@ -1,0 +1,79 @@
+# This workflow needs to live in the extension repo to be able to receive secrets such as deploy keys
+
+name: Extension Deployment
+on:
+  workflow_call:
+    inputs:
+      # The name with which the extension will be built
+      extension_name:
+        required: true
+        type: string
+      # GitHub ref of the extension repo
+      extension_ref:
+        required: true
+        type: string
+      # DuckDB version to build against
+      duckdb_version:
+        required: true
+        type: string
+      # Json formatted list of excluded target architectures, e.g. "[ 'linux_amd64', 'linux_amd64_gcc4' ]"
+      exclude_archs:
+        required: false
+        type: string
+        default: "[]"
+      # Allows overriding the default s3 deploy script with a custom script
+      deploy_script:
+        required: false
+        type: string
+        default: "./scripts/extension-upload-oote.sh"
+      set_latest:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  linux:
+    name: Deploy Linux
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        duckdb_arch: [ 'linux_amd64', 'linux_arm64', 'linux_amd64_gcc4', 'osx_amd64', 'osx_arm64', 'windows_amd64' ]
+        exclude: ${{ fromJson(inputs.exclude_archs) }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: 'true'
+
+      - name: Checkout DuckDB to version
+        run: |
+          cd duckdb
+          git checkout ${{ inputs.duckdb_version }}
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}
+          path: |
+            /tmp/${{ inputs.extension_name }}.duckdb_extension
+
+      - name: Deploy
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_DEPLOY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DEPLOY_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.S3_REGION }}
+          BUCKET_NAME: ${{ secrets.S3_BUCKET }}
+          DUCKDB_EXTENSION_SIGNING_PK: ${{ secrets.DUCKDB_EXTENSION_SIGNING_KEY }}
+        run: |
+          python3 -m pip install pip awscli
+          git config --global --add safe.directory '*'
+          cd duckdb
+          git fetch --tags
+          export DUCKDB_VERSION=`git tag --points-at HEAD`
+          export DUCKDB_VERSION=${DUCKDB_VERSION:=`git log -1 --format=%h`}
+          cd ..
+          git fetch --tags
+          export EXT_VERSION=`git tag --points-at HEAD`
+          export EXT_VERSION=${EXT_VERSION:=`git log -1 --format=%h`}
+          ${{ inputs.deploy_script }} ${{ inputs.extension_name }} $DUCKDB_VERSION $EXT_VERSION $BUCKET_NAME ${{inputs.set_latest || 'true' && 'false'}}
