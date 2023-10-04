@@ -49,8 +49,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - id: set-matrix
-        run: |                  
-          echo "linux_matrix={\"include\":`cat .github/config/distribution_matrix_linux.json`}" >> $GITHUB_OUTPUT
+        run: |
+          linux_matrix=`cat .github/config/distribution_matrix_linux.json`
+          echo "linux_matrix={\"include\":$linux_matrix}" >> $GITHUB_OUTPUT
 
   linux:
     name: Release
