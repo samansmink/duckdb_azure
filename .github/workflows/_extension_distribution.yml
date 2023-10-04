@@ -50,7 +50,7 @@ jobs:
         uses: actions/checkout@v2
       - id: set-matrix
         run: |
-          linux_matrix=`cat .github/config/distribution_matrix_linux.json`
+          linux_matrix=`cat .github/config/distribution_matrix_linux.json | tr '\n' ' '`
           echo "linux_matrix={\"include\":$linux_matrix}" >> $GITHUB_OUTPUT
 
   linux:
