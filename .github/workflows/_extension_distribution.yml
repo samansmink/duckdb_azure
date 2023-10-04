@@ -75,18 +75,6 @@ jobs:
            echo $windows_matrix
            echo `cat $GITHUB_OUTPUT`
 
-  debug_matrix:
-    name: Generate distribution matrix
-    runs-on: ubuntu-latest
-    needs: generate_matrix
-
-    steps:
-      - id: set-matrix-linux
-        run: |
-          echo ${{needs.generate_matrix.outputs.linux_matrix}}
-          echo ${{needs.generate_matrix.outputs.windows_matrix}}
-          echo ${{needs.generate_matrix.outputs.osx_matrix}}
-
   linux:
     name: Release
     runs-on: ubuntu-latest
