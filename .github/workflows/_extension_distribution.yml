@@ -24,11 +24,11 @@ on:
       duckdb_version:
         required: true
         type: string
-      # Json formatted list of excluded target architectures, e.g. "[ 'linux_amd64', 'linux_amd64_gcc4' ]"
-      exclude_archs:
+      # Path to the matrix config
+      matrix_config_path:
         required: false
         type: string
-        default: "[]"
+        default: ".github/config/"
       # postfix added to artifact names. Can be used to guarantee unique names when this workflow is called multiple times
       artifact_postfix:
         required: false
@@ -41,25 +41,59 @@ on:
         default: "501db0f17ef6df184fcdbfbe0f87cde2313b6ab1"
 
 jobs:
-  matrix_prep:
+  generate_matrix:
+    name: Generate distribution matrix
     runs-on: ubuntu-latest
     outputs:
-      linux_matrix: ${{ steps.set-matrix.outputs.linux_matrix }}
+      linux_matrix: ${{ steps.set-matrix-linux.outputs.linux_matrix }}
+      windows_matrix: ${{ steps.set-matrix-windows.outputs.windows_matrix }}
+      osx_matrix: ${{ steps.set-matrix-windows.outputs.osx_matrix }}
+      bs: ${{ steps.set-matrix.outputs.osx_matrix }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - id: set-matrix
+
+      - id: set-matrix-linux
         run: |
-          linux_matrix=`cat .github/config/distribution_matrix_linux.json | tr '\n' ' '`
-          echo "linux_matrix={\"include\":$linux_matrix}" >> $GITHUB_OUTPUT
+          linux_matrix="{\"include\":`cat ${{inputs.matrix_config_path}}/distribution_matrix_linux.json | tr '\n' ' '`}"
+          echo linux_matrix=$linux_matrix >> $GITHUB_OUTPUT
+          echo $linux_matrix
+          echo `cat $GITHUB_OUTPUT`
+
+      - id: set-matrix-osx
+        run: |
+          osx_matrix="{\"include\":`cat ${{inputs.matrix_config_path}}/distribution_matrix_osx.json | tr '\n' ' '`}"
+          echo osx_matrix=$osx_matrix >> $GITHUB_OUTPUT
+          echo $osx_matrix
+          echo `cat $GITHUB_OUTPUT`
+          
+
+      - id: set-matrix-windows
+        run: |
+           windows_matrix="{\"include\":`cat ${{inputs.matrix_config_path}}/distribution_matrix_windows.json | tr '\n' ' '`}"
+           echo windows_matrix=$windows_matrix >> $GITHUB_OUTPUT
+           echo $windows_matrix
+           echo `cat $GITHUB_OUTPUT`
+
+  debug_matrix:
+    name: Generate distribution matrix
+    runs-on: ubuntu-latest
+    needs: generate_matrix
+
+    steps:
+      - id: set-matrix-linux
+        run: |
+          echo ${{needs.generate_matrix.outputs.linux_matrix}}
+          echo ${{needs.generate_matrix.outputs.windows_matrix}}
+          echo ${{needs.generate_matrix.outputs.osx_matrix}}
 
   linux:
     name: Release
     runs-on: ubuntu-latest
     container: ${{ matrix.container }}
-    needs: matrix_prep
+    needs: generate_matrix
     strategy:
-      matrix: ${{fromJson(needs.matrix_prep.outputs.linux_matrix)}}
+      matrix: ${{fromJson(needs.generate_matrix.outputs.linux_matrix)}}
     env:
       VCPKG_TARGET_TRIPLET: ${{ matrix.vcpkg_triplet }}
       VCPKG_TOOLCHAIN_PATH: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
@@ -138,17 +172,9 @@ jobs:
   macos:
     name: Release (${{ matrix.duckdb_arch }})
     runs-on: macos-latest
+    needs: generate_matrix
     strategy:
-      matrix:
-        vcpkg_triplet: [ 'x64-osx', 'arm64-osx' ]
-        include:
-          - vcpkg_triplet: 'x64-osx'
-            osx_build_arch: 'x86_64'
-            duckdb_arch: 'osx_amd64'
-          - vcpkg_triplet: 'arm64-osx'
-            osx_build_arch: 'arm64'
-            duckdb_arch: 'osx_arm64'
-
+      matrix: ${{fromJson(needs.generate_matrix.outputs.osx_matrix)}}
     env:
       VCPKG_TOOLCHAIN_PATH: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
       VCPKG_TARGET_TRIPLET: ${{ matrix.vcpkg_triplet }}
@@ -204,14 +230,9 @@ jobs:
   windows:
     name: Release
     runs-on: windows-latest
+    needs: generate_matrix
     strategy:
-      matrix:
-        # Add commits/tags to build against other DuckDB versions
-        duckdb_arch: [ 'windows_amd64' ]
-        include:
-          - duckdb_arch: 'windows_amd64'
-            vcpkg_triplet: 'x64-windows-static-md'
-        exclude: ${{ fromJson(inputs.exclude_archs) }}
+      matrix: ${{fromJson(needs.generate_matrix.outputs.windows_matrix)}}
     env:
       GEN: Ninja
       VCPKG_TOOLCHAIN_PATH: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
