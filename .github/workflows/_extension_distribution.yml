@@ -58,7 +58,7 @@ jobs:
           - duckdb_arch: 'linux_arm64'
             container: 'ubuntu:18.04'
             vcpkg_triplet: 'arm64-linux'
-        ${{ insert }}: ${{ fromJson(inputs.exclude_archs) }}
+        exclude: ${{ fromJson(inputs.exclude_archs) }}
     env:
       VCPKG_TARGET_TRIPLET: ${{ matrix.vcpkg_triplet }}
       VCPKG_TOOLCHAIN_PATH: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
@@ -147,7 +147,7 @@ jobs:
           - vcpkg_triplet: 'arm64-osx'
             osx_build_arch: 'arm64'
             duckdb_arch: 'osx_arm64'
-        ${{ insert }}: ${{ fromJson(inputs.exclude_archs) }}
+        exclude: ${{ fromJson(inputs.exclude_archs) }}
 
     env:
       VCPKG_TOOLCHAIN_PATH: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
@@ -211,7 +211,7 @@ jobs:
         include:
           - duckdb_arch: 'windows_amd64'
             vcpkg_triplet: 'x64-windows-static-md'
-        ${{ insert }}: ${{ fromJson(inputs.exclude_archs) }}
+        exclude: ${{ fromJson(inputs.exclude_archs) }}
     env:
       GEN: Ninja
       VCPKG_TOOLCHAIN_PATH: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
