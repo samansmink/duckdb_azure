@@ -1,7 +1,12 @@
-# This is a reusable workflow to be used by extensions for CI. It:
+# Reusable workflow for building DuckDB extensions using a standardized environment
+#
+# The workflow:
 #   - builds the extension using the CI workflow from the corresponding DuckDB version
-#   - runs the tests using `make test` in the extension repository
-#   - (optionally) deploys the binaries to S3
+#   - uploads the extensions as gh actions artifacts in the following format:
+#         <ext_name>-<duckdb_version>-extension-<arch><optional_postfix>
+#
+# note: extensions are simply uploaded to GitHub actions, deploying the extensions is done a separate step. More info on
+#       on this can be found in https://github.com/duckdb/extension-template
 
 name: Extension distribution
 on:
@@ -24,6 +29,16 @@ on:
         required: false
         type: string
         default: "[]"
+      # postfix added to artifact names. Can be used to guarantee unique names when this workflow is called multiple times
+      artifact_postfix:
+        required: false
+        type: string
+        default: ""
+      # override the default vcpkg commit used by this version of DuckDB
+      vcpkg_commit:
+        required: false
+        type: string
+        default: "501db0f17ef6df184fcdbfbe0f87cde2313b6ab1"
 
 jobs:
   linux:
@@ -43,7 +58,8 @@ jobs:
           - duckdb_arch: 'linux_arm64'
             container: 'ubuntu:18.04'
             vcpkg_triplet: 'arm64-linux'
-        exclude: ${{ fromJson(inputs.exclude_archs) }}
+        exclude:
+          duckdb_arch: ${{ fromJson(inputs.exclude_archs) }}
     env:
       VCPKG_TARGET_TRIPLET: ${{ matrix.vcpkg_triplet }}
       VCPKG_TOOLCHAIN_PATH: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
@@ -98,7 +114,7 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: 501db0f17ef6df184fcdbfbe0f87cde2313b6ab1
+          vcpkgGitCommitId: ${{ inputs.vcpkg_commit }}
 
       - name: Build extension
         env:
@@ -115,7 +131,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}
+          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}${{inputs.artifact_postfix}}
           path: |
             build/release/extension/${{ inputs.extension_name }}/${{ inputs.extension_name }}.duckdb_extension
 
@@ -132,6 +148,8 @@ jobs:
           - vcpkg_triplet: 'arm64-osx'
             osx_build_arch: 'arm64'
             duckdb_arch: 'osx_arm64'
+        exclude:
+          duckdb_arch: ${{ fromJson(inputs.exclude_archs) }}
 
     env:
       VCPKG_TOOLCHAIN_PATH: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
@@ -147,8 +165,6 @@ jobs:
 
       - name: Install Ninja
         run: |
-          echo "$GITHUB_REF"
-          echo "hiii"
           brew install ninja
 
       - name: Setup Ccache
@@ -168,7 +184,7 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: 501db0f17ef6df184fcdbfbe0f87cde2313b6ab1
+          vcpkgGitCommitId: ${{ inputs.vcpkg_commit }}
 
       - name: Build extension
         shell: bash
@@ -183,7 +199,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}
+          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}${{inputs.artifact_postfix}}
           path: |
             build/release/extension/${{ inputs.extension_name }}/${{ inputs.extension_name }}.duckdb_extension
 
@@ -197,6 +213,8 @@ jobs:
         include:
           - duckdb_arch: 'windows_amd64'
             vcpkg_triplet: 'x64-windows-static-md'
+        exclude:
+          duckdb_arch: ${{ fromJson(inputs.exclude_archs) }}
     env:
       GEN: Ninja
       VCPKG_TOOLCHAIN_PATH: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
@@ -225,7 +243,7 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: 501db0f17ef6df184fcdbfbe0f87cde2313b6ab1
+          vcpkgGitCommitId: ${{ inputs.vcpkg_commit }}
 
       - name: Build extension
         run: |
@@ -238,6 +256,6 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}
+          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}${{inputs.artifact_postfix}}
           path: |
             build/release/extension/${{ inputs.extension_name }}/${{ inputs.extension_name }}.duckdb_extension

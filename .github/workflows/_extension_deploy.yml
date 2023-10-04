@@ -30,6 +30,10 @@ on:
         required: false
         type: boolean
         default: false
+      artifact_postfix:
+        required: false
+        type: string
+        default: ""
 
 jobs:
   linux:
@@ -53,7 +57,7 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}
+          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}${{inputs.artifact_postfix}}
           path: |
             /tmp/${{ inputs.extension_name }}.duckdb_extension
 
