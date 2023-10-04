@@ -23,7 +23,6 @@ jobs:
       duckdb_version: v0.9.0
       extension_name: azure
       extension_ref: ${{ github.ref }}
-      matrix_config_path: '.github/config_local'
       artifact_postfix: "-stable"
 
   duckdb-stable-deploy:
@@ -34,7 +33,6 @@ jobs:
       duckdb_version: v0.9.0
       extension_name: azure
       extension_ref: ${{ github.ref }}
-      matrix_config_path: '.github/config_local'
       set_latest: true
       artifact_postfix: "-stable"
     secrets: inherit

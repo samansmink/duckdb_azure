@@ -28,7 +28,7 @@ on:
       matrix_config_path:
         required: false
         type: string
-        default: ".github/config/"
+        default: ".github/config" # TODO replace with the one from DuckDB
       # postfix added to artifact names. Can be used to guarantee unique names when this workflow is called multiple times
       artifact_postfix:
         required: false
@@ -47,22 +47,21 @@ jobs:
     outputs:
       linux_matrix: ${{ steps.set-matrix-linux.outputs.linux_matrix }}
       windows_matrix: ${{ steps.set-matrix-windows.outputs.windows_matrix }}
-      osx_matrix: ${{ steps.set-matrix-windows.outputs.osx_matrix }}
-      bs: ${{ steps.set-matrix.outputs.osx_matrix }}
+      osx_matrix: ${{ steps.set-matrix-osx.outputs.osx_matrix }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
       - id: set-matrix-linux
         run: |
-          linux_matrix="{\"include\":`cat ${{inputs.matrix_config_path}}/distribution_matrix_linux.json | tr '\n' ' '`}"
+          linux_matrix="`cat ${{inputs.matrix_config_path}}/distribution_matrix_linux.json | tr '\n' ' '`"
           echo linux_matrix=$linux_matrix >> $GITHUB_OUTPUT
           echo $linux_matrix
           echo `cat $GITHUB_OUTPUT`
 
       - id: set-matrix-osx
         run: |
-          osx_matrix="{\"include\":`cat ${{inputs.matrix_config_path}}/distribution_matrix_osx.json | tr '\n' ' '`}"
+          osx_matrix="`cat ${{inputs.matrix_config_path}}/distribution_matrix_osx.json | tr '\n' ' '`"
           echo osx_matrix=$osx_matrix >> $GITHUB_OUTPUT
           echo $osx_matrix
           echo `cat $GITHUB_OUTPUT`
@@ -70,7 +69,7 @@ jobs:
 
       - id: set-matrix-windows
         run: |
-           windows_matrix="{\"include\":`cat ${{inputs.matrix_config_path}}/distribution_matrix_windows.json | tr '\n' ' '`}"
+           windows_matrix="`cat ${{inputs.matrix_config_path}}/distribution_matrix_windows.json | tr '\n' ' '`"
            echo windows_matrix=$windows_matrix >> $GITHUB_OUTPUT
            echo $windows_matrix
            echo `cat $GITHUB_OUTPUT`
@@ -80,6 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ${{ matrix.container }}
     needs: generate_matrix
+    if: ${{ needs.generate_matrix.outputs.linux_matrix != '[]' && needs.generate_matrix.outputs.linux_matrix != '' }}
     strategy:
       matrix: ${{fromJson(needs.generate_matrix.outputs.linux_matrix)}}
     env:
@@ -158,9 +158,10 @@ jobs:
             build/release/extension/${{ inputs.extension_name }}/${{ inputs.extension_name }}.duckdb_extension
 
   macos:
-    name: Release (${{ matrix.duckdb_arch }})
+    name: Release
     runs-on: macos-latest
     needs: generate_matrix
+#    if: ${{ needs.generate_matrix.outputs.osx_matrix != '[]' && needs.generate_matrix.outputs.osx_matrix != '' }}
     strategy:
       matrix: ${{fromJson(needs.generate_matrix.outputs.osx_matrix)}}
     env:
@@ -219,6 +220,7 @@ jobs:
     name: Release
     runs-on: windows-latest
     needs: generate_matrix
+    if: ${{ needs.generate_matrix.outputs.windows_matrix != '[]' && needs.generate_matrix.outputs.windows_matrix != '' }}
     strategy:
       matrix: ${{fromJson(needs.generate_matrix.outputs.windows_matrix)}}
     env:
