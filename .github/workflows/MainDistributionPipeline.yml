@@ -16,7 +16,7 @@ jobs:
     name: Build extension binaries
     # We only run the main pipeline for main branch or releases
 #    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/_extension_distribution.yml
+    uses: samansmink/duckdb/.github/workflows/_extension_distribution.yml@fc1b62b6b78d7bc23c2140469131d0799ad09ef2
     with:
       duckdb_version: v0.9.0
       extension_name: azure
