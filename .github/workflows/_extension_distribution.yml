@@ -25,17 +25,17 @@ on:
         required: false
         type: string
         default: ""
-      # postfix added to artifact names. Can be used to guarantee unique names when this workflow is called multiple times
+      # Postfix added to artifact names. Can be used to guarantee unique names when this workflow is called multiple times
       artifact_postfix:
         required: false
         type: string
         default: ""
-      # override the default vcpkg commit used by this version of DuckDB
+      # Override the default vcpkg commit used by this version of DuckDB
       vcpkg_commit:
         required: false
         type: string
         default: "501db0f17ef6df184fcdbfbe0f87cde2313b6ab1"
-      # override the default script producing the matrices. Allows specifying custom matrices.
+      # Override the default script producing the matrices. Allows specifying custom matrices.
       matrix_parse_script:
         required: false
         type: string
@@ -43,7 +43,7 @@ on:
 
 jobs:
   generate_matrix:
-    name: Generate distribution matrix
+    name: Generate build matrix
     runs-on: ubuntu-latest
     outputs:
       linux_matrix: ${{ steps.set-matrix-linux.outputs.linux_matrix }}
@@ -78,7 +78,7 @@ jobs:
           echo `cat $GITHUB_OUTPUT`
 
   linux:
-    name: Release
+    name: Linux
     runs-on: ubuntu-latest
     container: ${{ matrix.container }}
     needs: generate_matrix
@@ -161,7 +161,7 @@ jobs:
             build/release/extension/${{ inputs.extension_name }}/${{ inputs.extension_name }}.duckdb_extension
 
   macos:
-    name: Release
+    name: MacOS
     runs-on: macos-latest
     needs: generate_matrix
     if: ${{ needs.generate_matrix.outputs.osx_matrix != '{}' && needs.generate_matrix.outputs.osx_matrix != '' }}
@@ -220,7 +220,7 @@ jobs:
             build/release/extension/${{ inputs.extension_name }}/${{ inputs.extension_name }}.duckdb_extension
 
   windows:
-    name: Release
+    name: Windows
     runs-on: windows-latest
     needs: generate_matrix
     if: ${{ needs.generate_matrix.outputs.windows_matrix != '{}' && needs.generate_matrix.outputs.windows_matrix != '' }}
