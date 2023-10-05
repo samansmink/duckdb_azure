@@ -1,4 +1,10 @@
-# This workflow needs to live in the extension repo to be able to receive secrets such as deploy keys
+#
+# Reusable workflow that deploys the artifacts produced by github.com/duckdb/duckdb/.github/workflows/_extension_distribution.yml
+#
+# note: this workflow needs to be located in the extension repository, as it requires secrets to be passed to the
+# deploy script. However, it should generally not be necessary to modify this workflow in your extension repository, as
+# this workflow can be configured to use a custom deploy script.
+
 
 name: Extension Deployment
 on:
@@ -17,11 +23,16 @@ on:
         required: false
         type: string
         default: ""
-      # Whether to set this deploy as the latest. This may overwrite a previous deployment.
+      # Whether to upload this deployment as the latest. This may overwrite a previous deployment.
       set_latest:
         required: false
         type: boolean
-        default: false
+        default: true
+      # Whether to upload this deployment under a versioned path. These will not be deleted automatically
+      set_versioned:
+        required: false
+        type: boolean
+        default: true
       # Postfix added to artifact names. Can be used to guarantee unique names when this workflow is called multiple times
       artifact_postfix:
         required: false
@@ -55,7 +66,7 @@ jobs:
           echo deploy_matrix=$deploy_matrix >> $GITHUB_OUTPUT
           echo `cat $GITHUB_OUTPUT`
 
-  linux:
+  deploy:
     name: Deploy
     runs-on: ubuntu-latest
     needs: generate_matrix
@@ -87,7 +98,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DEPLOY_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.S3_REGION }}
           BUCKET_NAME: ${{ secrets.S3_BUCKET }}
-          DUCKDB_EXTENSION_SIGNING_PK: ${{ secrets.DUCKDB_EXTENSION_SIGNING_KEY }}
+          DUCKDB_EXTENSION_SIGNING_PK: ${{ secrets.DUCKDB_EXTENSION_SIGNING_PK }}
         run: |
           pwd
           python3 -m pip install pip awscli
@@ -100,4 +111,4 @@ jobs:
           git fetch --tags
           export EXT_VERSION=`git tag --points-at HEAD`
           export EXT_VERSION=${EXT_VERSION:=`git log -1 --format=%h`}
-          ${{ inputs.deploy_script }} ${{ inputs.extension_name }} $DUCKDB_VERSION $EXT_VERSION ${{ matrix.duckdb_arch }} $BUCKET_NAME ${{inputs.set_latest || 'true' && 'false'}}
+          ${{ inputs.deploy_script }} ${{ inputs.extension_name }} $EXT_VERSION $DUCKDB_VERSION ${{ matrix.duckdb_arch }} $BUCKET_NAME ${{inputs.set_latest || 'true' && 'false'}} $BUCKET_NAME ${{inputs.set_versioned || 'true' && 'false'}}

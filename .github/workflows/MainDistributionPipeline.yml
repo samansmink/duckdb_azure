@@ -21,7 +21,6 @@ jobs:
       duckdb_version: v0.9.0
       extension_name: azure
       exclude_archs: "linux_amd64_gcc4;linux_amd64;linux_arm64;windows_amd64;osx_amd64"
-      artifact_postfix: "-stable"
 
   duckdb-stable-deploy:
     name: Deploy extension binaries
@@ -31,6 +30,4 @@ jobs:
       duckdb_version: v0.9.0
       extension_name: azure
       exclude_archs: "linux_amd64_gcc4;linux_amd64;linux_arm64;windows_amd64;osx_amd64"
-      set_latest: true
-      artifact_postfix: "-stable"
     secrets: inherit
