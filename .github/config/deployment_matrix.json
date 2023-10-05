@@ -1,7 +1,7 @@
 {
   "include": [
     {
-      "duckdb_arch": "osx_amd64"
+      "duckdb_arch": "osx_arm64"
     }
   ]
 }

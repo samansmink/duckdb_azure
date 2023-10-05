@@ -24,11 +24,11 @@ on:
       duckdb_version:
         required: true
         type: string
-      # Path to the matrix config
-      matrix_config_path:
+      # ';' separated list of architectures to exclude, for example: 'linux_amd64;osx_arm64'
+      exclude_archs:
         required: false
         type: string
-        default: ".github/config" # TODO replace with the one from DuckDB
+        default: ""
       # postfix added to artifact names. Can be used to guarantee unique names when this workflow is called multiple times
       artifact_postfix:
         required: false
@@ -39,6 +39,11 @@ on:
         required: false
         type: string
         default: "501db0f17ef6df184fcdbfbe0f87cde2313b6ab1"
+      # can be overridden to produce custom matrices
+      matrix_parse_script:
+        required: false
+        type: string
+        default: "./scripts/modify_distribution_matrix.py"
 
 jobs:
   generate_matrix:
@@ -52,27 +57,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - id: parse-matrices
+        run: |
+          python3 ${{ inputs.matrix_parse_script }} --input .github/config/distribution_matrix.json --select_os linux --output linux_matrix.json --exclude "${{ inputs.exclude_archs }}" --pretty 
+          python3 ${{ inputs.matrix_parse_script }} --input .github/config/distribution_matrix.json --select_os osx --output osx_matrix.json --exclude "${{ inputs.exclude_archs }}" --pretty 
+          python3 ${{ inputs.matrix_parse_script }} --input .github/config/distribution_matrix.json --select_os windows --output windows_matrix.json --exclude "${{ inputs.exclude_archs }}" --pretty          
+
       - id: set-matrix-linux
         run: |
-          linux_matrix="`cat ${{inputs.matrix_config_path}}/distribution_matrix_linux.json | tr '\n' ' '`"
+          linux_matrix="`cat linux_matrix.json`"
           echo linux_matrix=$linux_matrix >> $GITHUB_OUTPUT
-          echo $linux_matrix
           echo `cat $GITHUB_OUTPUT`
 
       - id: set-matrix-osx
         run: |
-          osx_matrix="`cat ${{inputs.matrix_config_path}}/distribution_matrix_osx.json | tr '\n' ' '`"
+          osx_matrix="`cat osx_matrix.json`"
           echo osx_matrix=$osx_matrix >> $GITHUB_OUTPUT
-          echo $osx_matrix
           echo `cat $GITHUB_OUTPUT`
-          
 
       - id: set-matrix-windows
         run: |
-           windows_matrix="`cat ${{inputs.matrix_config_path}}/distribution_matrix_windows.json | tr '\n' ' '`"
-           echo windows_matrix=$windows_matrix >> $GITHUB_OUTPUT
-           echo $windows_matrix
-           echo `cat $GITHUB_OUTPUT`
+          windows_matrix="`cat windows_matrix.json`"
+          echo windows_matrix=$windows_matrix >> $GITHUB_OUTPUT
+          echo `cat $GITHUB_OUTPUT`
 
   linux:
     name: Release
