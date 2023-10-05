@@ -51,7 +51,7 @@ on:
 
 jobs:
   generate_matrix:
-    name: Generate deploy matrix
+    name: Generate matrix
     runs-on: ubuntu-latest
     outputs:
       deploy_matrix: ${{ steps.parse-matrices.outputs.deploy_matrix }}
@@ -60,6 +60,11 @@ jobs:
         with:
           fetch-depth: 0
           submodules: 'true'
+
+      - name: Checkout DuckDB to version
+        run: |
+          cd duckdb
+          git checkout ${{ inputs.duckdb_version }}
 
       - id: parse-matrices
         run: |

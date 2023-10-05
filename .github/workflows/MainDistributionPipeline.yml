@@ -14,20 +14,16 @@ concurrency:
 jobs:
   duckdb-stable:
     name: Build extension binaries
-    # We only run the main pipeline for main branch or releases
-#    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
-    uses: samansmink/duckdb/.github/workflows/_extension_distribution.yml@9dabe909f7468a7a64da9bf71a09f5c75957ef48
+    uses: samansmink/duckdb/.github/workflows/_extension_distribution.yml@83b39eb91d1a1acd4716f85657d35b2df5a780e6
     with:
-      duckdb_version: 9dabe909f7468a7a64da9bf71a09f5c75957ef48
+      duckdb_version: 83b39eb91d1a1acd4716f85657d35b2df5a780e6
       extension_name: azure
-      exclude_archs: "linux_amd64_gcc4;linux_amd64;linux_arm64;windows_amd64;osx_amd64"
 
   duckdb-stable-deploy:
     name: Deploy extension binaries
     needs: duckdb-stable
     uses: ./.github/workflows/_extension_deploy.yml
     with:
-      duckdb_version: 9dabe909f7468a7a64da9bf71a09f5c75957ef48
+      duckdb_version: 83b39eb91d1a1acd4716f85657d35b2df5a780e6
       extension_name: azure
-      exclude_archs: "linux_amd64_gcc4;linux_amd64;linux_arm64;windows_amd64;osx_amd64"
     secrets: inherit
