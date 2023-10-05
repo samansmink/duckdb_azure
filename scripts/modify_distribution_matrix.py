@@ -11,6 +11,7 @@ parser.add_argument("--exclude", required=True, help="Semicolon-separated list o
 parser.add_argument("--output", help="Output JSON file path")
 parser.add_argument("--pretty", action="store_true", help="Pretty print the output JSON")
 parser.add_argument("--select_os", help="Select an OS to include in the output JSON")
+parser.add_argument("--deploy_matrix", action="store_true", help="Create a merged list used in deploy step")
 args = parser.parse_args()
 
 # Parse the input file path, excluded arch values, and output file path
@@ -42,6 +43,17 @@ if select_os:
         if os == select_os:
             filtered_data = filtered_data[os]
             break
+elif args.deploy_matrix:
+    deploy_archs = []
+
+    for os, config in filtered_data.items():
+        if "include" in config:
+            for item in config["include"]:
+                deploy_archs.append({"duckdb_arch" :item["duckdb_arch"]})
+
+    filtered_data = {
+        "include": deploy_archs
+    }
 
 # Determine the JSON formatting
 indent = 2 if args.pretty else None
@@ -49,6 +61,7 @@ indent = 2 if args.pretty else None
 # If no output file is provided, print to stdout
 if output_json_file_path:
     with open(output_json_file_path, "w") as output_json_file:
-        json.dump(filtered_data, output_json_file, indent=indent)
+        if filtered_data:
+            json.dump(filtered_data, output_json_file, indent=indent)
 else:
     json.dump(filtered_data, sys.stdout, indent=indent)

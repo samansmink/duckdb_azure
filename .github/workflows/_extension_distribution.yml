@@ -16,10 +16,6 @@ on:
       extension_name:
         required: true
         type: string
-      # GitHub ref of the extension repo
-      extension_ref:
-        required: true
-        type: string
       # DuckDB version to build against
       duckdb_version:
         required: true
@@ -39,7 +35,7 @@ on:
         required: false
         type: string
         default: "501db0f17ef6df184fcdbfbe0f87cde2313b6ab1"
-      # can be overridden to produce custom matrices
+      # override the default script producing the matrices. Allows specifying custom matrices.
       matrix_parse_script:
         required: false
         type: string
@@ -86,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ${{ matrix.container }}
     needs: generate_matrix
-    if: ${{ needs.generate_matrix.outputs.linux_matrix != '[]' && needs.generate_matrix.outputs.linux_matrix != '' }}
+    if: ${{ needs.generate_matrix.outputs.linux_matrix != '{}' && needs.generate_matrix.outputs.linux_matrix != '' }}
     strategy:
       matrix: ${{fromJson(needs.generate_matrix.outputs.linux_matrix)}}
     env:
@@ -168,7 +164,7 @@ jobs:
     name: Release
     runs-on: macos-latest
     needs: generate_matrix
-#    if: ${{ needs.generate_matrix.outputs.osx_matrix != '[]' && needs.generate_matrix.outputs.osx_matrix != '' }}
+    if: ${{ needs.generate_matrix.outputs.osx_matrix != '{}' && needs.generate_matrix.outputs.osx_matrix != '' }}
     strategy:
       matrix: ${{fromJson(needs.generate_matrix.outputs.osx_matrix)}}
     env:
@@ -227,7 +223,7 @@ jobs:
     name: Release
     runs-on: windows-latest
     needs: generate_matrix
-    if: ${{ needs.generate_matrix.outputs.windows_matrix != '[]' && needs.generate_matrix.outputs.windows_matrix != '' }}
+    if: ${{ needs.generate_matrix.outputs.windows_matrix != '{}' && needs.generate_matrix.outputs.windows_matrix != '' }}
     strategy:
       matrix: ${{fromJson(needs.generate_matrix.outputs.windows_matrix)}}
     env:
