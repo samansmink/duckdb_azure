@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Extension upload script for out of tree extensions
+# Extension upload script
 
 # Usage: ./extension-upload-oote.sh <name> <extension_version> <duckdb_version> <architecture> <s3_bucket> <copy_to_latest> <copy_to_versioned>
 # <name>                : Name of the extension

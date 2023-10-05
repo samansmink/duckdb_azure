@@ -42,12 +42,12 @@ on:
       deploy_script:
         required: false
         type: string
-        default: "./scripts/extension-upload-oote.sh"
+        default: "./scripts/extension-upload.sh"
       # Override the default matrix parse script with a custom script
       matrix_parse_script:
         required: false
         type: string
-        default: "./scripts/modify_distribution_matrix.py"
+        default: "./duckdb/scripts/modify_distribution_matrix.py"
 
 jobs:
   generate_matrix:
@@ -56,12 +56,14 @@ jobs:
     outputs:
       deploy_matrix: ${{ steps.parse-matrices.outputs.deploy_matrix }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: 'true'
 
       - id: parse-matrices
         run: |
-          python3 ${{ inputs.matrix_parse_script }} --input .github/config/distribution_matrix.json --deploy_matrix --output deploy_matrix.json --exclude "${{ inputs.exclude_archs }}" --pretty 
+          python3 ${{ inputs.matrix_parse_script }} --input ./duckdb/.github/config/distribution_matrix.json --deploy_matrix --output deploy_matrix.json --exclude "${{ inputs.exclude_archs }}" --pretty 
           deploy_matrix="`cat deploy_matrix.json`"
           echo deploy_matrix=$deploy_matrix >> $GITHUB_OUTPUT
           echo `cat $GITHUB_OUTPUT`
