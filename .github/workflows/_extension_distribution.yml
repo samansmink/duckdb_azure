@@ -155,7 +155,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           # See https://github.com/actions/runner-images/issues/9398
-          toolset: 14.38
+          toolset: 14.37
 
       - name: Fix for MSVC issue
         shell: bash
@@ -166,7 +166,7 @@ jobs:
           mkdir overlay_triplets
           cp $OVERLAY_TRIPLET_SRC $OVERLAY_TRIPLET_DST
           echo "message(STATUS THISSHOULDBEDISPLAYEDIFOVERLAYTRIPLETWORKED)" >> $OVERLAY_TRIPLET_DST
-          echo "set(VCPKG_PLATFORM_TOOLSET_VERSION "14.38")" >> $OVERLAY_TRIPLET_DST
+          echo "set(VCPKG_PLATFORM_TOOLSET_VERSION "14.37")" >> $OVERLAY_TRIPLET_DST
 
       - name: Build extension
         env:
