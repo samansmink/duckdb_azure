@@ -152,6 +152,7 @@ jobs:
           vcpkgGitCommitId: ${{ inputs.vcpkg_commit }}
 
       - name: Fix for MSVC issue
+        shell: bash
         run: |
           mkdir overlay_triplets
           cp ${{ github.workspace }}/vcpkg/triplets/x64-windows-static-md.cmake overlay_triplets/x64-windows-static-md.cmake
