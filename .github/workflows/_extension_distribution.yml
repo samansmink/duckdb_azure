@@ -154,7 +154,7 @@ jobs:
       - name: Fix for MSVC issue
         shell: bash
         env:
-          OVERLAY_TRIPLET_SRC:  ${{ github.workspace }}/vcpkg/triplets/x64-windows-static-md.cmake
+          OVERLAY_TRIPLET_SRC:  ${{ github.workspace }}/vcpkg/triplets/community/x64-windows-static-md.cmake
           OVERLAY_TRIPLET_DST:  ${{ github.workspace }}/overlay_triplets/x64-windows-static-md.cmake
         run: |
           mkdir overlay_triplets
