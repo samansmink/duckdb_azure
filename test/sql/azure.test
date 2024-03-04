@@ -17,7 +17,7 @@ statement ok
 SET azure_storage_connection_string = '';
 
 statement error
-SELECT sum(l_orderkey) FROM '${prefix}testing-private/l.parquet';
+SELECT sum(l_orderkey) FROM 'containertesting-private/l.parquet';
 ----
 Invalid Input Error: No valid Azure credentials found
 
