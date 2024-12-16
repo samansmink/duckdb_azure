@@ -3,7 +3,7 @@
 #include "duckdb/common/exception.hpp"
 #include "duckdb/common/helper.hpp"
 #include "duckdb/common/shared_ptr.hpp"
-#include "duckdb/function/scalar/string_functions.hpp"
+#include "duckdb/function/scalar/string_common.hpp"
 #include <algorithm>
 #include <azure/storage/blobs/blob_options.hpp>
 #include <azure/storage/common/storage_exception.hpp>
@@ -50,7 +50,7 @@ static void Walk(const Azure::Storage::Files::DataLake::DataLakeFileSystemClient
 		for (const auto &elt : res.Paths) {
 			if (elt.IsDirectory) {
 				if (!recursive) { // Only perform recursive call if we are not already processing recursive result
-					if (LikeFun::Glob(elt.Name.data(), elt.Name.length(), path_pattern.data(), end_match)) {
+					if (Glob(elt.Name.data(), elt.Name.length(), path_pattern.data(), end_match)) {
 						if (end_match >= path_pattern.length()) {
 							// Skip, no way there will be matches anymore
 							continue;
@@ -61,7 +61,7 @@ static void Walk(const Azure::Storage::Files::DataLake::DataLakeFileSystemClient
 				}
 			} else {
 				// File
-				if (LikeFun::Glob(elt.Name.data(), elt.Name.length(), path_pattern.data(), path_pattern.length())) {
+				if (Glob(elt.Name.data(), elt.Name.length(), path_pattern.data(), path_pattern.length())) {
 					out_result->push_back(elt.Name);
 				}
 			}

@@ -10,7 +10,7 @@
 #include "duckdb/common/string_util.hpp"
 #include "duckdb/main/secret/secret.hpp"
 #include "duckdb/main/secret/secret_manager.hpp"
-#include "duckdb/function/scalar/string_functions.hpp"
+#include "duckdb/function/scalar/string_common.hpp"
 #include "duckdb/function/scalar_function.hpp"
 #include "duckdb/main/extension_util.hpp"
 #include "duckdb/main/client_data.hpp"
@@ -47,7 +47,7 @@ static bool Match(vector<string>::const_iterator key, vector<string>::const_iter
 			}
 			return false;
 		}
-		if (!LikeFun::Glob(key->data(), key->length(), pattern->data(), pattern->length())) {
+		if (!Glob(key->data(), key->length(), pattern->data(), pattern->length())) {
 			return false;
 		}
 		key++;
