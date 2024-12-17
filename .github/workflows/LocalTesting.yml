@@ -32,7 +32,6 @@ jobs:
       run: |
         sudo apt-get install -y azure-cli squid
         npm install -g azurite
-        echo -e "[azure-cli]\nname=Azure CLI\nbaseurl=https://packages.microsoft.com/yumrepos/azure-cli\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" | tee /etc/yum.repos.d/azure-cli.repo
 
     - name: Launch & populate Azure test service
       run: |
