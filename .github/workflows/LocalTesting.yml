@@ -11,7 +11,6 @@ jobs:
   azurite-tests-linux:
     name: Azurite tests (Linux)
     runs-on: ubuntu-latest
-    container: 'quay.io/pypa/manylinux2014_x86_64'
     env:
       VCPKG_TARGET_TRIPLET: 'x64-linux'
       GEN: Ninja
@@ -22,17 +21,18 @@ jobs:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: 'true'
 
+    - uses: actions/setup-node@v4
+
     - name: install Azure test service
       run: |
-        yum install -y nodejs npm squid
+        sudo apt-get install -y azure-cli squid
         npm install -g azurite
         echo -e "[azure-cli]\nname=Azure CLI\nbaseurl=https://packages.microsoft.com/yumrepos/azure-cli\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" | tee /etc/yum.repos.d/azure-cli.repo
-        yum install -y azure-cli
 
     - name: Launch & populate Azure test service
       run: |
@@ -41,10 +41,6 @@ jobs:
         ./scripts/run_squid.sh --port 3129 --log_dir squid_auth_logs --auth &
         sleep 10
         ./scripts/upload_test_files_to_azurite.sh
-
-    - name: Setup ManyLinux2014
-      run: |
-        ./duckdb/scripts/setup_manylinux2014.sh general aws-cli ccache ssh openssl python_alias
 
     - name: Setup vcpkg
       uses: lukka/run-vcpkg@v11.1
