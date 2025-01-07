@@ -35,8 +35,6 @@ jobs:
     - name: Launch & populate Azure test service
       run: |
         azurite > azurite_log.txt 2>&1 &
-        mkdir squid_logs
-        mkdir squid_auth_logs
         sudo ./scripts/run_squid.sh --port 3128 --log_dir squid_logs &
         sudo ./scripts/run_squid.sh --port 3129 --log_dir squid_auth_logs --auth &
         sleep 10
@@ -71,10 +69,10 @@ jobs:
         cat azurite_log.txt
 
         echo "## squid"
-        cat squid_logs/*
+        sudo cat squid_logs/*
 
         echo "## squid auth"
-        cat squid_auth_logs/*
+        sudo cat squid_auth_logs/*
 
   azurite-tests-macos:
     name: Azurite tests (MacOS)
